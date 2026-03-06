@@ -35,6 +35,9 @@ export default function LoginPage() {
       const response = await authApi.login(data);
       const { access_token, user_id, is_admin } = response.data;
 
+      // Save token to localStorage BEFORE making authenticated requests
+      localStorage.setItem('access_token', access_token);
+
       // Get user details
       const userResponse = await authApi.getMe();
       const user = userResponse.data;
