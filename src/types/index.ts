@@ -55,32 +55,8 @@ export interface Declaration {
   created_by_user?: User;
   created_at: string;
   updated_at: string;
-  vehicles?: DeclarationVehicle[];
-  attachments?: DeclarationAttachment[];
-}
-
-export interface DeclarationVehicle {
-  id: number;
-  declaration_id: number;
-  vehicle_type: string;
-  brand: string;
-  model: string;
-  vin: string;
-  year: number;
-  license_plate: string;
-  created_at: string;
-}
-
-export interface DeclarationAttachment {
-  id: number;
-  declaration_id: number;
-  file_name: string;
-  file_path: string;
-  file_size: number;
-  mime_type: string;
-  uploaded_by: number;
-  uploaded_by_user?: User;
-  uploaded_at: string;
+  vehicles?: any[];
+  attachments?: any[];
 }
 
 export interface Certificate {
@@ -103,30 +79,8 @@ export interface Certificate {
   created_by_user?: User;
   created_at: string;
   updated_at: string;
-  attachments?: CertificateAttachment[];
-  actions?: CertificateAction[];
-}
-
-export interface CertificateAttachment {
-  id: number;
-  certificate_id: number;
-  file_name: string;
-  file_path: string;
-  file_size: number;
-  mime_type: string;
-  uploaded_by: number;
-  uploaded_by_user?: User;
-  uploaded_at: string;
-}
-
-export interface CertificateAction {
-  id: number;
-  certificate_id: number;
-  action_type: string;
-  performed_by: number;
-  performed_by_user?: User;
-  notes: string | null;
-  performed_at: string;
+  attachments?: any[];
+  actions?: any[];
 }
 
 export interface Task {
@@ -148,30 +102,8 @@ export interface Task {
   related_certificate_id?: number;
   created_at: string;
   updated_at: string;
-  attachments?: TaskAttachment[];
-  history?: TaskHistory[];
-}
-
-export interface TaskAttachment {
-  id: number;
-  task_id: number;
-  file_name: string;
-  file_path: string;
-  file_size: number;
-  mime_type: string;
-  uploaded_by: number;
-  uploaded_by_user?: User;
-  uploaded_at: string;
-}
-
-export interface TaskHistory {
-  id: number;
-  task_id: number;
-  status: string;
-  changed_by: number;
-  changed_by_user?: User;
-  notes: string | null;
-  changed_at: string;
+  attachments?: any[];
+  history?: any[];
 }
 
 export interface Document {
@@ -183,7 +115,7 @@ export interface Document {
   file_size: number;
   mime_type: string;
   folder_id?: number;
-  folder?: Folder;
+  folder?: any;
   uploaded_by: number;
   uploaded_by_user?: User;
   company_id: number;
@@ -204,18 +136,7 @@ export interface Folder {
   created_by_user?: User;
   created_at: string;
   updated_at: string;
-  access_list?: FolderAccess[];
-}
-
-export interface FolderAccess {
-  id: number;
-  folder_id: number;
-  user_id: number;
-  user?: User;
-  permission: 'read' | 'write' | 'admin';
-  granted_by: number;
-  granted_by_user?: User;
-  granted_at: string;
+  access_list?: any[];
 }
 
 export interface Client {
@@ -236,18 +157,7 @@ export interface Client {
   created_by_user?: User;
   created_at: string;
   updated_at: string;
-  access_list?: ClientAccess[];
-}
-
-export interface ClientAccess {
-  id: number;
-  client_id: number;
-  user_id: number;
-  user?: User;
-  permission: 'read' | 'write' | 'admin';
-  granted_by: number;
-  granted_by_user?: User;
-  granted_at: string;
+  access_list?: any[];
 }
 
 export interface Partnership {
@@ -318,9 +228,9 @@ export interface DashboardStats {
   total_clients: number;
   active_clients: number;
   total_documents: number;
-  recent_declarations: Declaration[];
-  upcoming_tasks: Task[];
-  expiring_certificates_list: Certificate[];
+  recent_declarations: any[];
+  upcoming_tasks: any[];
+  expiring_certificates_list: any[];
 }
 
 export interface AuthRequest {

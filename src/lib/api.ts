@@ -1,12 +1,4 @@
 import axios from 'axios';
-import type {
-  User, Company, CompanyMember, Declaration, Certificate,
-  Task, Document, Folder, Client, Partnership, Request,
-  Notification, AdminCode, DashboardStats,
-  AuthRequest, RegisterRequest, LoginResponse, RegisterResponse,
-  CompanySetupCreate, CompanyLookupResponse,
-  PaginatedResponse
-} from '@/types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -55,109 +47,117 @@ api.interceptors.response.use(
 
 // Auth API
 export const authApi = {
-  register: (data: RegisterRequest) => api.post<RegisterResponse>('/api/auth/register', data),
-  login: (data: AuthRequest) => api.post<LoginResponse>('/api/auth/login', data),
-  adminLogin: (data: AuthRequest & { secret: string }) => api.post<LoginResponse>('/api/auth/admin/login', data),
-  getMe: () => api.get<User>({ url: '/api/auth/me' }),
-  getCompanyStatus: () => api.get<{ status: string; message?: string; company_id?: number; company_name?: string; role?: string }>({ url: '/api/auth/me/company-status' }),
-  createCompany: (data: CompanySetupCreate) => api.post<Company>({ url: '/api/auth/company/create', data }),
-  joinCompany: (data: { company_inn: string }) => api.post<{ message: string }>({ url: '/api/auth/company/join', data }),
-  lookupCompany: (inn: string) => api.post<CompanyLookupResponse>({ url: '/api/auth/company/lookup', data: { inn } }),
-  forgotPassword: (email: string) => api.post<{ message: string }>({ url: '/api/auth/forgot-password', data: { email } }),
+  register: (data: any) => api.post('/api/auth/register', data),
+  login: (data: any) => api.post('/api/auth/login', data),
+  adminLogin: (data: any) => api.post('/api/auth/admin/login', data),
+  getMe: () => api.get('/api/auth/me'),
+  getCompanyStatus: () => api.get('/api/auth/me/company-status'),
+  createCompany: (data: any) => api.post('/api/auth/company/create', data),
+  joinCompany: (data: { company_inn: string }) => api.post('/api/auth/company/join', data),
+  lookupCompany: (inn: string) => api.post('/api/auth/company/lookup', { inn }),
+  forgotPassword: (email: string) => api.post('/api/auth/forgot-password', { email }),
 };
 
 // Admin API
 export const adminApi = {
-  getUsers: (params?: { page?: number; size?: number; search?: string }) => api.get<PaginatedResponse<User>>({ url: '/api/admin/users', params }),
-  updateUser: (userId: number, data: Partial<User>) => api.put<User>({ url: `/api/admin/users/${userId}`, data }),
-  deleteUser: (userId: number) => api.delete<void>({ url: `/api/admin/users/${userId}` }),
-  getAdminCodes: () => api.get<AdminCode[]>('/api/admin/codes'),
-  generateAdminCode: () => api.post<AdminCode>('/api/admin/codes/generate'),
-  revokeAdminCode: (codeId: number) => api.delete<void>({ url: `/api/admin/codes/${codeId}` }),
-  getCompanies: (params?: { page?: number; size?: number; search?: string; is_active?: boolean }) => api.get<PaginatedResponse<Company>>({ url: '/api/admin/companies', params }),
-  updateCompany: (companyId: number, data: Partial<Company>) => api.put<Company>({ url: `/api/admin/companies/${companyId}`, data }),
-  deleteCompany: (companyId: number) => api.delete<void>({ url: `/api/admin/companies/${companyId}` }),
-  getCompanyMembers: (companyId: number) => api.get<CompanyMember[]>({ url: `/api/admin/companies/${companyId}/members` }),
-  updateCompanyMember: (companyId: number, memberId: number, data: { role?: string; is_active?: boolean }) => api.put<CompanyMember>({ url: `/api/admin/companies/${companyId}/members/${memberId}`, data }),
-  removeCompanyMember: (companyId: number, memberId: number) => api.delete<void>({ url: `/api/admin/companies/${companyId}/members/${memberId}` }),
-  getPendingRequests: () => api.get<Request[]>({ url: '/api/admin/requests/pending' }),
-  resolveRequest: (requestId: number, status: 'resolved' | 'cancelled') => api.patch<Request>({ url: `/api/admin/requests/${requestId}`, data: { status } }),
-  getSystemStats: () => api.get<DashboardStats>('/api/admin/stats'),
+  getUsers: (params?: any) => api.get('/api/admin/users', { params }),
+  updateUser: (userId: number, data: any) => api.put(`/api/admin/users/${userId}`, data),
+  deleteUser: (userId: number) => api.delete(`/api/admin/users/${userId}`),
+  getAdminCodes: () => api.get('/api/admin/codes'),
+  generateAdminCode: () => api.post('/api/admin/codes/generate'),
+  revokeAdminCode: (codeId: number) => api.delete(`/api/admin/codes/${codeId}`),
+  getCompanies: (params?: any) => api.get('/api/admin/companies', { params }),
+  updateCompany: (companyId: number, data: any) => api.put(`/api/admin/companies/${companyId}`, data),
+  deleteCompany: (companyId: number) => api.delete(`/api/admin/companies/${companyId}`),
+  getCompanyMembers: (companyId: number) => api.get(`/api/admin/companies/${companyId}/members`),
+  updateCompanyMember: (companyId: number, memberId: number, data: any) => api.put(`/api/admin/companies/${companyId}/members/${memberId}`, data),
+  removeCompanyMember: (companyId: number, memberId: number) => api.delete(`/api/admin/companies/${companyId}/members/${memberId}`),
+  getPendingRequests: () => api.get('/api/admin/requests/pending'),
+  resolveRequest: (requestId: number, status: 'resolved' | 'cancelled') => api.patch(`/api/admin/requests/${requestId}`, { status }),
+  getSystemStats: () => api.get('/api/admin/stats'),
 };
 
 // Dashboard API
 export const dashboardApi = {
-  getStats: () => api.get<DashboardStats>('/api/dashboard/stats'),
+  getStats: () => api.get('/api/dashboard/stats'),
 };
 
 // Declarations API
 export const declarationsApi = {
-  getAll: (params?: { page?: number; size?: number; status?: string; company_id?: number; assigned_user_id?: number; search?: string }) => api.get<PaginatedResponse<Declaration>>({ url: '/api/declarations', params }),
-  getById: (id: number) => api.get<Declaration>({ url: `/api/declarations/${id}` }),
-  create: (data: Partial<Declaration>) => api.post<Declaration>({ url: '/api/declarations', data }),
-  update: (id: number, data: Partial<Declaration>) => api.put<Declaration>({ url: `/api/declarations/${id}`, data }),
-  delete: (id: number) => api.delete<void>({ url: `/api/declarations/${id}` }),
-  assignUser: (id: number, userId: number) => api.post<{ message: string }>({ url: `/api/declarations/${id}/assign`, data: { user_id: userId } }),
-  changeStatus: (id: number, status: Declaration['status']) => api.patch<Declaration>({ url: `/api/declarations/${id}/status`, data: { status } }),
-  addVehicle: (declarationId: number, data: Partial<DeclarationVehicle>) => api.post<DeclarationVehicle>({ url: `/api/declarations/${declarationId}/vehicles`, data }),
-  removeVehicle: (declarationId: number, vehicleId: number) => api.delete<void>({ url: `/api/declarations/${declarationId}/vehicles/${vehicleId}` }),
+  getAll: (params?: any) => api.get('/api/declarations', { params }),
+  getById: (id: number) => api.get(`/api/declarations/${id}`),
+  create: (data: any) => api.post('/api/declarations', data),
+  update: (id: number, data: any) => api.put(`/api/declarations/${id}`, data),
+  delete: (id: number) => api.delete(`/api/declarations/${id}`),
+  assignUser: (id: number, userId: number) => api.post(`/api/declarations/${id}/assign`, { user_id: userId }),
+  changeStatus: (id: number, status: string) => api.patch(`/api/declarations/${id}/status`, { status }),
+  addVehicle: (declarationId: number, data: any) => api.post(`/api/declarations/${declarationId}/vehicles`, data),
+  removeVehicle: (declarationId: number, vehicleId: number) => api.delete(`/api/declarations/${declarationId}/vehicles/${vehicleId}`),
   uploadAttachment: (declarationId: number, file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    return api.post<DeclarationAttachment>({ url: `/api/declarations/${declarationId}/attachments`, data: formData, headers: { 'Content-Type': 'multipart/form-data' } });
+    return api.post(`/api/declarations/${declarationId}/attachments`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
   },
-  removeAttachment: (declarationId: number, attachmentId: number) => api.delete<void>({ url: `/api/declarations/${declarationId}/attachments/${attachmentId}` }),
+  removeAttachment: (declarationId: number, attachmentId: number) => api.delete(`/api/declarations/${declarationId}/attachments/${attachmentId}`),
 };
 
 // Certificates API
 export const certificatesApi = {
-  getAll: (params?: { page?: number; size?: number; status?: string; company_id?: number; assigned_user_id?: number; search?: string }) => api.get<PaginatedResponse<Certificate>>({ url: '/api/certificates', params }),
-  getById: (id: number) => api.get<Certificate>({ url: `/api/certificates/${id}` }),
-  create: (data: Partial<Certificate>) => api.post<Certificate>({ url: '/api/certificates', data }),
-  update: (id: number, data: Partial<Certificate>) => api.put<Certificate>({ url: `/api/certificates/${id}`, data }),
-  delete: (id: number) => api.delete<void>({ url: `/api/certificates/${id}` }),
-  assignUser: (id: number, userId: number) => api.post<{ message: string }>({ url: `/api/certificates/${id}/assign`, data: { user_id: userId } }),
-  changeStatus: (id: number, status: Certificate['status']) => api.patch<Certificate>({ url: `/api/certificates/${id}/status`, data: { status } }),
+  getAll: (params?: any) => api.get('/api/certificates', { params }),
+  getById: (id: number) => api.get(`/api/certificates/${id}`),
+  create: (data: any) => api.post('/api/certificates', data),
+  update: (id: number, data: any) => api.put(`/api/certificates/${id}`, data),
+  delete: (id: number) => api.delete(`/api/certificates/${id}`),
+  assignUser: (id: number, userId: number) => api.post(`/api/certificates/${id}/assign`, { user_id: userId }),
+  changeStatus: (id: number, status: string) => api.patch(`/api/certificates/${id}/status`, { status }),
   uploadAttachment: (certificateId: number, file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    return api.post<CertificateAttachment>({ url: `/api/certificates/${certificateId}/attachments`, data: formData, headers: { 'Content-Type': 'multipart/form-data' } });
+    return api.post(`/api/certificates/${certificateId}/attachments`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
   },
-  removeAttachment: (certificateId: number, attachmentId: number) => api.delete<void>({ url: `/api/certificates/${certificateId}/attachments/${attachmentId}` }),
-  addAction: (certificateId: number, data: { action_type: string; notes?: string }) => api.post<CertificateAction>({ url: `/api/certificates/${certificateId}/actions`, data }),
+  removeAttachment: (certificateId: number, attachmentId: number) => api.delete(`/api/certificates/${certificateId}/attachments/${attachmentId}`),
+  addAction: (certificateId: number, data: { action_type: string; notes?: string }) => api.post(`/api/certificates/${certificateId}/actions`, data),
 };
 
 // Tasks API
 export const tasksApi = {
-  getAll: (params?: { page?: number; size?: number; status?: string; assigned_user_id?: number; company_id?: number; search?: string }) => api.get<PaginatedResponse<Task>>({ url: '/api/tasks', params }),
-  getById: (id: number) => api.get<Task>({ url: `/api/tasks/${id}` }),
-  create: (data: Partial<Task>) => api.post<Task>({ url: '/api/tasks', data }),
-  update: (id: number, data: Partial<Task>) => api.put<Task>({ url: `/api/tasks/${id}`, data }),
-  delete: (id: number) => api.delete<void>({ url: `/api/tasks/${id}` }),
-  assignUser: (id: number, userId: number) => api.post<{ message: string }>({ url: `/api/tasks/${id}/assign`, data: { user_id: userId } }),
-  changeStatus: (id: number, status: Task['status']) => api.patch<Task>({ url: `/api/tasks/${id}/status`, data: { status } }),
+  getAll: (params?: any) => api.get('/api/tasks', { params }),
+  getById: (id: number) => api.get(`/api/tasks/${id}`),
+  create: (data: any) => api.post('/api/tasks', data),
+  update: (id: number, data: any) => api.put(`/api/tasks/${id}`, data),
+  delete: (id: number) => api.delete(`/api/tasks/${id}`),
+  assignUser: (id: number, userId: number) => api.post(`/api/tasks/${id}/assign`, { user_id: userId }),
+  changeStatus: (id: number, status: string) => api.patch(`/api/tasks/${id}/status`, { status }),
   uploadAttachment: (taskId: number, file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    return api.post<TaskAttachment>({ url: `/api/tasks/${taskId}/attachments`, data: formData, headers: { 'Content-Type': 'multipart/form-data' } });
+    return api.post(`/api/tasks/${taskId}/attachments`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
   },
-  removeAttachment: (taskId: number, attachmentId: number) => api.delete<void>({ url: `/api/tasks/${taskId}/attachments/${attachmentId}` }),
+  removeAttachment: (taskId: number, attachmentId: number) => api.delete(`/api/tasks/${taskId}/attachments/${attachmentId}`),
 };
 
 // Documents API
 export const documentsApi = {
-  getAll: (params?: { page?: number; size?: number; folder_id?: number; company_id?: number; search?: string }) => api.get<PaginatedResponse<Document>>({ url: '/api/documents', params }),
-  getById: (id: number) => api.get<Document>({ url: `/api/documents/${id}` }),
+  getAll: (params?: any) => api.get('/api/documents', { params }),
+  getById: (id: number) => api.get(`/api/documents/${id}`),
   create: (data: { title: string; description?: string; file: File; folder_id?: number }) => {
     const formData = new FormData();
     formData.append('title', data.title);
     if (data.description) formData.append('description', data.description);
     formData.append('file', data.file);
     if (data.folder_id) formData.append('folder_id', data.folder_id.toString());
-    return api.post<Document>({ url: '/api/documents', data: formData, headers: { 'Content-Type': 'multipart/form-data' } });
+    return api.post('/api/documents', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
   },
-  update: (id: number, data: { title?: string; description?: string; folder_id?: number }) => api.put<Document>({ url: `/api/documents/${id}`, data }),
-  delete: (id: number) => api.delete<void>({ url: `/api/documents/${id}` }),
+  update: (id: number, data: { title?: string; description?: string; folder_id?: number }) => api.put(`/api/documents/${id}`, data),
+  delete: (id: number) => api.delete(`/api/documents/${id}`),
   download: (id: number) => {
     const token = localStorage.getItem('access_token');
     const link = document.createElement('a');
@@ -171,66 +171,68 @@ export const documentsApi = {
 
 // Folders API
 export const foldersApi = {
-  getAll: (companyId: number) => api.get<Folder[]>({ url: `/api/documents/folders?company_id=${companyId}` }),
-  create: (data: { name: string; description?: string; parent_folder_id?: number; company_id: number }) => api.post<Folder>({ url: '/api/documents/folders', data }),
-  update: (id: number, data: Partial<Folder>) => api.put<Folder>({ url: `/api/documents/folders/${id}`, data }),
-  delete: (id: number) => api.delete<void>({ url: `/api/documents/folders/${id}` }),
-  grantAccess: (folderId: number, userId: number, permission: 'read' | 'write' | 'admin') => api.post<FolderAccess>({ url: `/api/documents/folders/${folderId}/access`, data: { user_id: userId, permission } }),
-  revokeAccess: (folderId: number, userId: number) => api.delete<void>({ url: `/api/documents/folders/${folderId}/access/${userId}` }),
+  getAll: (companyId: number) => api.get(`/api/documents/folders?company_id=${companyId}`),
+  create: (data: { name: string; description?: string; parent_folder_id?: number; company_id: number }) => api.post('/api/documents/folders', data),
+  update: (id: number, data: any) => api.put(`/api/documents/folders/${id}`, data),
+  delete: (id: number) => api.delete(`/api/documents/folders/${id}`),
+  grantAccess: (folderId: number, userId: number, permission: 'read' | 'write' | 'admin') => api.post(`/api/documents/folders/${folderId}/access`, { user_id: userId, permission }),
+  revokeAccess: (folderId: number, userId: number) => api.delete(`/api/documents/folders/${folderId}/access/${userId}`),
 };
 
 // Clients API
 export const clientsApi = {
-  getAll: (params?: { page?: number; size?: number; company_id?: number; search?: string }) => api.get<PaginatedResponse<Client>>({ url: '/api/clients', params }),
-  getById: (id: number) => api.get<Client>({ url: `/api/clients/${id}` }),
-  create: (data: Partial<Client>) => api.post<Client>({ url: '/api/clients', data }),
-  update: (id: number, data: Partial<Client>) => api.put<Client>({ url: `/api/clients/${id}`, data }),
-  delete: (id: number) => api.delete<void>({ url: `/api/clients/${id}` }),
-  grantAccess: (clientId: number, userId: number, permission: 'read' | 'write' | 'admin') => api.post<ClientAccess>({ url: `/api/clients/${clientId}/access`, data: { user_id: userId, permission } }),
-  revokeAccess: (clientId: number, userId: number) => api.delete<void>({ url: `/api/clients/${clientId}/access/${userId}` }),
+  getAll: (params?: any) => api.get('/api/clients', { params }),
+  getById: (id: number) => api.get(`/api/clients/${id}`),
+  create: (data: any) => api.post('/api/clients', data),
+  update: (id: number, data: any) => api.put(`/api/clients/${id}`, data),
+  delete: (id: number) => api.delete(`/api/clients/${id}`),
+  grantAccess: (clientId: number, userId: number, permission: 'read' | 'write' | 'admin') => api.post(`/api/clients/${clientId}/access`, { user_id: userId, permission }),
+  revokeAccess: (clientId: number, userId: number) => api.delete(`/api/clients/${clientId}/access/${userId}`),
 };
 
 // Partnerships API
 export const partnershipsApi = {
-  getAll: (params?: { page?: number; size?: number; status?: string; company_id?: number; search?: string }) => api.get<PaginatedResponse<Partnership>>({ url: '/api/partnerships', params }),
-  getById: (id: number) => api.get<Partnership>({ url: `/api/partnerships/${id}` }),
-  create: (data: { target_company_inn: string; partnership_type: string; description?: string }) => api.post<Partnership>({ url: '/api/partnerships', data }),
-  update: (id: number, data: Partial<Partnership>) => api.put<Partnership>({ url: `/api/partnerships/${id}`, data }),
-  delete: (id: number) => api.delete<void>({ url: `/api/partnerships/${id}` }),
-  respond: (id: number, status: 'accepted' | 'rejected') => api.patch<Partnership>({ url: `/api/partnerships/${id}/respond`, data: { status } }),
+  getAll: (params?: any) => api.get('/api/partnerships', { params }),
+  getById: (id: number) => api.get(`/api/partnerships/${id}`),
+  create: (data: { target_company_inn: string; partnership_type: string; description?: string }) => api.post('/api/partnerships', data),
+  update: (id: number, data: any) => api.put(`/api/partnerships/${id}`, data),
+  delete: (id: number) => api.delete(`/api/partnerships/${id}`),
+  respond: (id: number, status: 'accepted' | 'rejected') => api.patch(`/api/partnerships/${id}/respond`, { status }),
 };
 
 // Requests API
 export const requestsApi = {
-  getAll: (params?: { page?: number; size?: number; status?: string; company_id?: number; assigned_user_id?: number; search?: string }) => api.get<PaginatedResponse<Request>>({ url: '/api/requests', params }),
-  getById: (id: number) => api.get<Request>({ url: `/api/requests/${id}` }),
-  create: (data: Partial<Request>) => api.post<Request>({ url: '/api/requests', data }),
-  update: (id: number, data: Partial<Request>) => api.put<Request>({ url: `/api/requests/${id}`, data }),
-  delete: (id: number) => api.delete<void>({ url: `/api/requests/${id}` }),
-  assignUser: (id: number, userId: number) => api.post<{ message: string }>({ url: `/api/requests/${id}/assign`, data: { user_id: userId } }),
-  changeStatus: (id: number, status: Request['status']) => api.patch<Request>({ url: `/api/requests/${id}/status`, data: { status } }),
+  getAll: (params?: any) => api.get('/api/requests', { params }),
+  getById: (id: number) => api.get(`/api/requests/${id}`),
+  create: (data: any) => api.post('/api/requests', data),
+  update: (id: number, data: any) => api.put(`/api/requests/${id}`, data),
+  delete: (id: number) => api.delete(`/api/requests/${id}`),
+  assignUser: (id: number, userId: number) => api.post(`/api/requests/${id}/assign`, { user_id: userId }),
+  changeStatus: (id: number, status: string) => api.patch(`/api/requests/${id}/status`, { status }),
 };
 
 // Notifications API
 export const notificationsApi = {
-  getAll: (params?: { page?: number; size?: number; is_read?: boolean }) => api.get<PaginatedResponse<Notification>>({ url: '/api/notifications', params }),
-  getById: (id: number) => api.get<Notification>({ url: `/api/notifications/${id}` }),
-  markAsRead: (id: number) => api.patch<Notification>({ url: `/api/notifications/${id}/read`, data: {} }),
-  markAllAsRead: () => api.post<{ message: string }>('/api/notifications/read-all'),
-  getUnreadCount: () => api.get<{ count: number }>('/api/notifications/unread-count'),
+  getAll: (params?: any) => api.get('/api/notifications', { params }),
+  getById: (id: number) => api.get(`/api/notifications/${id}`),
+  markAsRead: (id: number) => api.patch(`/api/notifications/${id}/read`, {}),
+  markAllAsRead: () => api.post('/api/notifications/read-all'),
+  getUnreadCount: () => api.get('/api/notifications/unread-count'),
 };
 
 // Settings API
 export const settingsApi = {
-  getProfile: () => api.get<User>('/api/settings/profile'),
-  updateProfile: (data: Partial<User>) => api.put<User>({ url: '/api/settings/profile', data }),
-  changePassword: (currentPassword: string, newPassword: string) => api.post<{ message: string }>('/api/settings/password', data: { current_password: currentPassword, new_password: newPassword }),
+  getProfile: () => api.get('/api/settings/profile'),
+  updateProfile: (data: any) => api.put('/api/settings/profile', data),
+  changePassword: (currentPassword: string, newPassword: string) => api.post('/api/settings/password', { current_password: currentPassword, new_password: newPassword }),
   uploadAvatar: (file: File) => {
     const formData = new FormData();
     formData.append('avatar', file);
-    return api.post<User>({ url: '/api/settings/avatar', data: formData, headers: { 'Content-Type': 'multipart/form-data' } });
+    return api.post('/api/settings/avatar', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
   },
-  toggleSound: (enabled: boolean) => api.patch<User>({ url: '/api/settings/sound', data: { sound_enabled: enabled } }),
+  toggleSound: (enabled: boolean) => api.patch('/api/settings/sound', { sound_enabled: enabled }),
 };
 
 export default api;
