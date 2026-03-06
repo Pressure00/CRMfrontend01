@@ -34,6 +34,8 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
             is_active: true,
             user_id: userResponse.data.id,
             id: 0, // We don't need the actual ID
+            is_blocked: false,
+            joined_at: new Date().toISOString(),
           });
         } else {
           setCompanyMember(null);
@@ -45,10 +47,10 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
       }
     };
 
-    if (token && !isAuthenticated) {
+    if (!isAuthenticated) {
       checkAuth();
     }
-  }, [token, isAuthenticated, setUser, setCompanyMember, setToken]);
+  }, [isAuthenticated, setUser, setCompanyMember, setToken]);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;

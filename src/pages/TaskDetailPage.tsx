@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { tasksApi } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
@@ -26,11 +26,12 @@ export default function TaskDetailPage() {
   const [showAttachmentUpload, setShowAttachmentUpload] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const { data: task, isLoading } = useQuery({
+  const { data: taskResponse, isPending } = useQuery({
     queryKey: ['task', id],
     queryFn: () => tasksApi.getById(parseInt(id!)),
     enabled: !!id,
   });
+  const task = taskResponse?.data;
 
   const changeStatusMutation = useMutation({
     mutationFn: (status: string) => tasksApi.changeStatus(parseInt(id!), status as any),
@@ -66,7 +67,7 @@ export default function TaskDetailPage() {
 
   const canEdit = companyMember?.role === 'director' || task?.creator_user_id === user?.id;
 
-  if (isLoading) {
+  if (isPending) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
@@ -174,17 +175,17 @@ export default function TaskDetailPage() {
                   <span className="text-sm text-blue-900">{selectedFile.name}</span>
                   <button
                     onClick={handleFileUpload}
-                    disabled={uploadAttachmentMutation.isLoading}
+                    disabled={uploadAttachmentMutation.isPending}
                     className="btn-primary text-xs"
                   >
-                    {uploadAttachmentMutation.isLoading ? 'Загрузка...' : 'Загрузить'}
+                    {uploadAttachmentMutation.isPending ? 'Загрузка...' : 'Загрузить'}
                   </button>
                 </div>
               )}
 
               {task.attachments && task.attachments.length > 0 ? (
                 <div className="space-y-2">
-                  {task.attachments.map((attachment) => (
+                  {task.attachments.map((attachment: any) => (
                     <div key={attachment.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                       <div className="flex items-center space-x-3">
                         <FileText className="h-5 w-5 text-gray-400" />
@@ -234,7 +235,7 @@ export default function TaskDetailPage() {
               </div>
               <div className="card-body">
                 <div className="space-y-4">
-                  {task.history.map((history) => (
+                  {task.history.map((history: any) => (
                     <div key={history.id} className="flex items-start space-x-3">
                       <div className="flex-shrink-0">
                         <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
@@ -280,7 +281,7 @@ export default function TaskDetailPage() {
                 <select
                   value={task.status}
                   onChange={(e) => changeStatusMutation.mutate(e.target.value)}
-                  disabled={changeStatusMutation.isLoading}
+                  disabled={changeStatusMutation.isPending}
                   className="input"
                 >
                   <option value="pending">Ожидает</option>

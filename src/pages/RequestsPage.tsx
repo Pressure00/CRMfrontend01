@@ -9,7 +9,6 @@ import {
   Filter,
   MessageSquare,
   MoreVertical,
-  Eye,
   Check,
   X,
   Calendar,
@@ -31,7 +30,7 @@ export default function RequestsPage() {
 
   const queryClient = useQueryClient();
 
-  const { data, isLoading, refetch } = useQuery<PaginatedResponse<Request>>({
+  const { data, isPending, refetch } = useQuery<PaginatedResponse<Request>>({
     queryKey: ['requests', page, search, statusFilter, companyMember?.company_id],
     queryFn: () => requestsApi.getAll({
       page,
@@ -39,7 +38,7 @@ export default function RequestsPage() {
       search: search || undefined,
       status: statusFilter || undefined,
       company_id: companyMember?.company_id,
-    }),
+    }).then(response => response.data),
   });
 
   const updateFilters = (updates: Record<string, string>) => {
@@ -169,7 +168,7 @@ export default function RequestsPage() {
 
       {/* Table */}
       <div className="card">
-        {isLoading ? (
+        {isPending ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
           </div>
@@ -269,7 +268,7 @@ export default function RequestsPage() {
                                   changeStatusMutation.mutate({ id: request.id, status: 'in_progress' });
                                   setMenuOpenId(null);
                                 }}
-                                disabled={request.status !== 'pending' || changeStatusMutation.isLoading}
+                                disabled={request.status !== 'pending' || changeStatusMutation.isPending}
                                 className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                               >
                                 <Check className="h-4 w-4 mr-2" />
@@ -280,7 +279,7 @@ export default function RequestsPage() {
                                   changeStatusMutation.mutate({ id: request.id, status: 'resolved' });
                                   setMenuOpenId(null);
                                 }}
-                                disabled={request.status !== 'in_progress' || changeStatusMutation.isLoading}
+                                disabled={request.status !== 'in_progress' || changeStatusMutation.isPending}
                                 className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                               >
                                 <Check className="h-4 w-4 mr-2" />
@@ -291,7 +290,7 @@ export default function RequestsPage() {
                                   changeStatusMutation.mutate({ id: request.id, status: 'cancelled' });
                                   setMenuOpenId(null);
                                 }}
-                                disabled={request.status === 'cancelled' || request.status === 'resolved' || changeStatusMutation.isLoading}
+                                disabled={request.status === 'cancelled' || request.status === 'resolved' || changeStatusMutation.isPending}
                                 className="flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50 disabled:opacity-50"
                               >
                                 <X className="h-4 w-4 mr-2" />

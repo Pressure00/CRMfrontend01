@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { declarationsApi } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
@@ -34,11 +34,12 @@ export default function DeclarationDetailPage() {
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const { data: declaration, isLoading } = useQuery({
+  const { data: declarationResponse, isPending } = useQuery({
     queryKey: ['declaration', id],
     queryFn: () => declarationsApi.getById(parseInt(id!)),
     enabled: !!id,
   });
+  const declaration = declarationResponse?.data;
 
   const updateStatusMutation = useMutation({
     mutationFn: (status: string) => declarationsApi.changeStatus(parseInt(id!), status as any),
@@ -108,7 +109,7 @@ export default function DeclarationDetailPage() {
     uploadAttachmentMutation.mutate(selectedFile);
   };
 
-  if (isLoading) {
+  if (isPending) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
@@ -218,28 +219,23 @@ export default function DeclarationDetailPage() {
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Срок</dt>
+                  <dt className="text-sm font-medium text-gray-500">Дата декларации</dt>
                   <dd className="mt-1 text-sm text-gray-900">
-                    {declaration.deadline ? (
-                      <span className={`flex items-center ${new Date(declaration.deadline) < new Date() ? 'text-red-600' : ''}`}>
-                        <Calendar className="h-4 w-4 mr-1" />
-                        {format(new Date(declaration.deadline), 'dd MMM yyyy', { locale: ru })}
-                      </span>
-                    ) : (
-                      'Не указан'
-                    )}
+                    {format(new Date(declaration.declaration_date), 'dd MMM yyyy', { locale: ru })}
                   </dd>
                 </div>
+                {declaration.deadline && (
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">Срок</dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {format(new Date(declaration.deadline), 'dd MMM yyyy', { locale: ru })}
+                    </dd>
+                  </div>
+                )}
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Ответственный</dt>
                   <dd className="mt-1 text-sm text-gray-900">
                     {declaration.assigned_user?.full_name || 'Не назначен'}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Дата декларации</dt>
-                  <dd className="mt-1 text-sm text-gray-900">
-                    {format(new Date(declaration.declaration_date), 'dd MMM yyyy', { locale: ru })}
                   </dd>
                 </div>
               </dl>
@@ -273,69 +269,86 @@ export default function DeclarationDetailPage() {
                 <form onSubmit={handleAddVehicle} className="mb-6 p-4 border border-gray-200 rounded-lg">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="label">Тип ТС *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Тип ТС *
+                      </label>
                       <input
                         type="text"
                         value={vehicleForm.vehicle_type}
                         onChange={(e) => setVehicleForm({ ...vehicleForm, vehicle_type: e.target.value })}
                         className="input"
-                        placeholder="Легковой, грузовой и т.д."
+                        placeholder="Например: Автомобиль, Мотоцикл"
                       />
                     </div>
                     <div>
-                      <label className="label">Марка *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Марка *
+                      </label>
                       <input
                         type="text"
                         value={vehicleForm.brand}
                         onChange={(e) => setVehicleForm({ ...vehicleForm, brand: e.target.value })}
                         className="input"
-                        placeholder="Toyota"
+                        placeholder="Марка"
                       />
                     </div>
                     <div>
-                      <label className="label">Модель *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Модель *
+                      </label>
                       <input
                         type="text"
                         value={vehicleForm.model}
                         onChange={(e) => setVehicleForm({ ...vehicleForm, model: e.target.value })}
                         className="input"
-                        placeholder="Camry"
+                        placeholder="Модель"
                       />
                     </div>
                     <div>
-                      <label className="label">VIN *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        VIN *
+                      </label>
                       <input
                         type="text"
                         value={vehicleForm.vin}
-                        onChange={(e) => setVehicleForm({ ...vehicleForm, vin: e.target.value.toUpperCase() })}
+                        onChange={(e) => setVehicleForm({ ...vehicleForm, vin: e.target.value })}
                         className="input"
-                        placeholder="JTNBV4HE6D1234567"
+                        placeholder="VIN номер"
                       />
                     </div>
                     <div>
-                      <label className="label">Год выпуска</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Год
+                      </label>
                       <input
                         type="number"
                         value={vehicleForm.year}
                         onChange={(e) => setVehicleForm({ ...vehicleForm, year: e.target.value })}
                         className="input"
-                        placeholder="2020"
-                        min="1900"
-                        max="2024"
+                        placeholder="Год выпуска"
                       />
                     </div>
                     <div>
-                      <label className="label">Номерной знак</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Номерной знак
+                      </label>
                       <input
                         type="text"
                         value={vehicleForm.license_plate}
-                        onChange={(e) => setVehicleForm({ ...vehicleForm, license_plate: e.target.value.toUpperCase() })}
+                        onChange={(e) => setVehicleForm({ ...vehicleForm, license_plate: e.target.value })}
                         className="input"
-                        placeholder="А123БС777"
+                        placeholder="Номерной знак"
                       />
                     </div>
                   </div>
-                  <div className="flex justify-end space-x-2 mt-4">
+                  <div className="flex space-x-2 mt-4">
+                    <button
+                      type="submit"
+                      disabled={addVehicleMutation.isPending}
+                      className="btn-primary"
+                    >
+                      {addVehicleMutation.isPending ? 'Добавление...' : 'Добавить'}
+                    </button>
                     <button
                       type="button"
                       onClick={() => setShowVehicleForm(false)}
@@ -343,20 +356,13 @@ export default function DeclarationDetailPage() {
                     >
                       Отмена
                     </button>
-                    <button
-                      type="submit"
-                      disabled={addVehicleMutation.isLoading}
-                      className="btn-primary"
-                    >
-                      {addVehicleMutation.isLoading ? 'Добавление...' : 'Добавить'}
-                    </button>
                   </div>
                 </form>
               )}
 
               {declaration.vehicles && declaration.vehicles.length > 0 ? (
                 <div className="space-y-3">
-                  {declaration.vehicles.map((vehicle) => (
+                  {declaration.vehicles.map((vehicle: any) => (
                     <div key={vehicle.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                       <div className="flex items-center space-x-3">
                         <Car className="h-5 w-5 text-gray-400" />
@@ -416,17 +422,17 @@ export default function DeclarationDetailPage() {
                   <span className="text-sm text-blue-900">{selectedFile.name}</span>
                   <button
                     onClick={handleFileUpload}
-                    disabled={uploadAttachmentMutation.isLoading}
+                    disabled={uploadAttachmentMutation.isPending}
                     className="btn-primary text-xs"
                   >
-                    {uploadAttachmentMutation.isLoading ? 'Загрузка...' : 'Загрузить'}
+                    {uploadAttachmentMutation.isPending ? 'Загрузка...' : 'Загрузить'}
                   </button>
                 </div>
               )}
 
               {declaration.attachments && declaration.attachments.length > 0 ? (
                 <div className="space-y-2">
-                  {declaration.attachments.map((attachment) => (
+                  {declaration.attachments.map((attachment: any) => (
                     <div key={attachment.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                       <div className="flex items-center space-x-3">
                         <FileText className="h-5 w-5 text-gray-400" />
@@ -479,28 +485,28 @@ export default function DeclarationDetailPage() {
             <div className="card-body space-y-3">
               <button
                 onClick={() => updateStatusMutation.mutate('submitted')}
-                disabled={declaration.status !== 'draft' || updateStatusMutation.isLoading}
+                disabled={declaration.status !== 'draft' || updateStatusMutation.isPending}
                 className="w-full btn-outline disabled:opacity-50"
               >
                 Отправить на рассмотрение
               </button>
               <button
                 onClick={() => updateStatusMutation.mutate('in_progress')}
-                disabled={declaration.status !== 'submitted' || updateStatusMutation.isLoading}
+                disabled={declaration.status !== 'submitted' || updateStatusMutation.isPending}
                 className="w-full btn-outline disabled:opacity-50"
               >
                 Начать работу
               </button>
               <button
                 onClick={() => updateStatusMutation.mutate('completed')}
-                disabled={declaration.status !== 'in_progress' || updateStatusMutation.isLoading}
+                disabled={declaration.status !== 'in_progress' || updateStatusMutation.isPending}
                 className="w-full btn-primary disabled:opacity-50"
               >
                 Завершить
               </button>
               <button
                 onClick={() => updateStatusMutation.mutate('cancelled')}
-                disabled={declaration.status === 'cancelled' || declaration.status === 'completed' || updateStatusMutation.isLoading}
+                disabled={declaration.status === 'cancelled' || declaration.status === 'completed' || updateStatusMutation.isPending}
                 className="w-full btn-danger disabled:opacity-50"
               >
                 Отменить

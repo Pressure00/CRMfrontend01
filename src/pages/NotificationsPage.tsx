@@ -18,21 +18,22 @@ import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import type { Notification, PaginatedResponse } from '@/types';
 import toast from 'react-hot-toast';
+import { Link } from 'react-router-dom';
 
 export default function NotificationsPage() {
   const [page, setPage] = useState(1);
   const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
 
   const queryClient = useQueryClient();
-  const { notifications, setNotifications, markAsRead, markAllAsRead, unreadCount, setUnreadCount } = useNotificationStore();
+  const { notifications: storeNotifications, setNotifications, markAsRead, markAllAsRead, unreadCount, setUnreadCount } = useNotificationStore();
 
-  const { data, isLoading } = useQuery<PaginatedResponse<Notification>>({
+  const { data, isPending } = useQuery<PaginatedResponse<Notification>>({
     queryKey: ['notifications', page],
-    queryFn: () => notificationsApi.getAll({ page, size: 20 }),
+    queryFn: () => notificationsApi.getAll({ page, size: 20 }).then(response => response.data),
   });
 
   const markAsReadMutation = useMutation({
-    mutationFn: notificationsApi.markAsRead,
+    mutationFn: (id: number) => notificationsApi.markAsRead(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
@@ -48,7 +49,7 @@ export default function NotificationsPage() {
   });
 
   const deleteNotificationMutation = useMutation({
-    mutationFn: notificationsApi.delete,
+    mutationFn: (id: number) => notificationsApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       toast.success('Уведомление удалено');
@@ -105,6 +106,8 @@ export default function NotificationsPage() {
     setMenuOpenId(null);
   };
 
+  const displayNotifications = data?.items || storeNotifications;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -113,14 +116,13 @@ export default function NotificationsPage() {
           <p className="text-gray-600">
             {unreadCount > 0 
               ? `У вас ${unreadCount} непрочитанных уведомлений`
-              : 'Все уведомления прочитаны'
-            }
+              : 'Все уведомления прочитаны'}
           </p>
         </div>
         {unreadCount > 0 && (
           <button
             onClick={handleMarkAllAsRead}
-            disabled={markAllAsReadMutation.isLoading}
+            disabled={markAllAsReadMutation.isPending}
             className="btn-outline"
           >
             <CheckCheck className="h-4 w-4 mr-2" />
@@ -130,11 +132,11 @@ export default function NotificationsPage() {
       </div>
 
       <div className="card">
-        {isLoading ? (
+        {isPending ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
           </div>
-        ) : notifications.length === 0 ? (
+        ) : displayNotifications.length === 0 ? (
           <div className="text-center py-12">
             <Bell className="h-12 w-12 mx-auto mb-4 text-gray-300" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Нет уведомлений</h3>
@@ -144,7 +146,7 @@ export default function NotificationsPage() {
           </div>
         ) : (
           <div className="divide-y divide-gray-200">
-            {notifications.map((notification) => {
+            {displayNotifications.map((notification) => {
               const link = getNotificationLink(notification);
               const content = (
                 <div className={`p-4 hover:bg-gray-50 transition-colors ${!notification.is_read ? 'bg-blue-50' : ''}`}>

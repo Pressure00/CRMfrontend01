@@ -24,30 +24,35 @@ export default function AdminPage() {
 
   const queryClient = useQueryClient();
 
-  const { data: stats } = useQuery({
+  const { data: statsResponse } = useQuery({
     queryKey: ['admin-stats'],
     queryFn: adminApi.getSystemStats,
   });
+  const stats = statsResponse?.data;
 
-  const { data: users } = useQuery({
+  const { data: usersResponse } = useQuery({
     queryKey: ['admin-users'],
     queryFn: () => adminApi.getUsers({ size: 10 }),
   });
+  const users = usersResponse?.data;
 
-  const { data: companies } = useQuery({
+  const { data: companiesResponse } = useQuery({
     queryKey: ['admin-companies'],
     queryFn: () => adminApi.getCompanies({ size: 10 }),
   });
+  const companies = companiesResponse?.data;
 
-  const { data: pendingRequests } = useQuery({
+  const { data: pendingRequestsResponse } = useQuery({
     queryKey: ['admin-pending-requests'],
     queryFn: adminApi.getPendingRequests,
   });
+  const pendingRequests = pendingRequestsResponse?.data;
 
-  const { data: adminCodes } = useQuery({
+  const { data: adminCodesResponse } = useQuery({
     queryKey: ['admin-codes'],
     queryFn: adminApi.getAdminCodes,
   });
+  const adminCodes = adminCodesResponse?.data;
 
   const generateCodeMutation = useMutation({
     mutationFn: adminApi.generateAdminCode,
@@ -184,17 +189,23 @@ export default function AdminPage() {
                 <h2 className="text-lg font-semibold text-gray-900">Последние пользователи</h2>
               </div>
               <div className="card-body">
-                {users?.items.slice(0, 5).map((user) => (
-                  <div key={user.id} className="flex items-center justify-between py-2">
-                    <div>
-                      <p className="font-medium text-gray-900">{user.full_name}</p>
-                      <p className="text-sm text-gray-500">{user.email}</p>
-                    </div>
-                    <span className={`badge ${user.is_active ? 'badge-success' : 'badge-danger'}`}>
-                      {user.is_active ? 'Активен' : 'Неактивен'}
-                    </span>
+                {users?.items && users.items.length > 0 ? (
+                  <div className="space-y-3">
+                    {users.items.slice(0, 5).map((userItem: User) => (
+                      <div key={userItem.id} className="flex items-center justify-between py-2">
+                        <div>
+                          <p className="font-medium text-gray-900">{userItem.full_name}</p>
+                          <p className="text-sm text-gray-500">{userItem.email}</p>
+                        </div>
+                        <span className={`badge ${userItem.is_active ? 'badge-success' : 'badge-danger'}`}>
+                          {userItem.is_active ? 'Активен' : 'Неактивен'}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                ) : (
+                  <p className="text-gray-500">Нет данных</p>
+                )}
               </div>
             </div>
 
@@ -205,12 +216,12 @@ export default function AdminPage() {
               <div className="card-body">
                 {pendingRequests && pendingRequests.length > 0 ? (
                   <div className="space-y-3">
-                    {pendingRequests.slice(0, 5).map((request) => (
+                    {pendingRequests.slice(0, 5).map((request: Request) => (
                       <div key={request.id} className="flex items-center justify-between py-2">
                         <div>
                           <p className="font-medium text-gray-900">{request.title}</p>
                           <p className="text-sm text-gray-500">
-                            {request.company?.name} • {request.created_by_user?.full_name}
+                            {request.company?.name || 'Не указана'} • {request.created_by_user?.full_name || 'Неизвестно'}
                           </p>
                         </div>
                         <div className="flex space-x-1">
@@ -233,7 +244,7 @@ export default function AdminPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500 text-center py-4">Нет ожидающих запросов</p>
+                  <p className="text-gray-500">Нет ожидающих запросов</p>
                 )}
               </div>
             </div>
@@ -243,115 +254,116 @@ export default function AdminPage() {
 
       {activeTab === 'users' && (
         <div className="card">
-          <div className="overflow-x-auto">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Пользователь</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Телефон</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Тип</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Статус</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Дата регистрации</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {users?.items.map((user) => (
-                  <tr key={user.id} className="table-row">
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
-                          <span className="text-sm font-medium text-gray-600">
-                            {user.full_name.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div className="ml-3">
-                          <p className="text-sm font-medium text-gray-900">{user.full_name}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{user.email}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{user.phone}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                      {user.activity_type === 'declarant' ? 'Декларант' : 'Сертификатор'}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span className={`badge ${user.is_active ? 'badge-success' : 'badge-danger'}`}>
-                        {user.is_active ? 'Активен' : 'Неактивен'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                      {format(new Date(user.created_at), 'dd MMM yyyy', { locale: ru })}
-                    </td>
+          <div className="card-header">
+            <h2 className="text-lg font-semibold text-gray-900">Все пользователи</h2>
+          </div>
+          <div className="card-body">
+            <div className="overflow-x-auto">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Имя</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Телефон</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Тип</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Статус</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Админ</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Дата</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {users?.items && users.items.map((userItem: User) => (
+                    <tr key={userItem.id} className="table-row">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{userItem.full_name}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{userItem.email}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{userItem.phone}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        {userItem.activity_type === 'declarant' ? 'Декларант' : 'Сертификатор'}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className={`badge ${userItem.is_active ? 'badge-success' : 'badge-danger'}`}>
+                          {userItem.is_active ? 'Активен' : 'Неактивен'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        {userItem.is_admin ? 'Да' : 'Нет'}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        {format(new Date(userItem.created_at), 'dd MMM yyyy', { locale: ru })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
 
       {activeTab === 'companies' && (
         <div className="card">
-          <div className="overflow-x-auto">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Компания</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ИНН</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Тип</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Статус</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Дата создания</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Действия</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {companies?.items.map((company) => (
-                  <tr key={company.id} className="table-row">
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <p className="text-sm font-medium text-gray-900">{company.name}</p>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{company.inn}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                      {company.activity_type === 'declarant' ? 'Декларант' : 'Сертификатор'}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span className={`badge ${company.is_active ? 'badge-success' : 'badge-warning'}`}>
-                        {company.is_active ? 'Активна' : 'Неактивна'}
-                      </span>
-                      {company.is_blocked && (
-                        <span className="badge badge-danger ml-1">Заблокирована</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                      {format(new Date(company.created_at), 'dd MMM yyyy', { locale: ru })}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-right">
-                      <div className="flex space-x-1">
-                        {!company.is_active && (
-                          <button
-                            onClick={() => activateCompanyMutation.mutate(company.id)}
-                            className="p-1 text-green-600 hover:bg-green-50 rounded"
-                            title="Активировать"
-                          >
-                            <CheckCircle className="h-4 w-4" />
-                          </button>
-                        )}
-                        {!company.is_blocked && company.is_active && (
-                          <button
-                            onClick={() => blockCompanyMutation.mutate(company.id)}
-                            className="p-1 text-red-600 hover:bg-red-50 rounded"
-                            title="Заблокировать"
-                          >
-                            <XCircle className="h-4 w-4" />
-                          </button>
-                        )}
-                      </div>
-                    </td>
+          <div className="card-header">
+            <h2 className="text-lg font-semibold text-gray-900">Все компании</h2>
+          </div>
+          <div className="card-body">
+            <div className="overflow-x-auto">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Название</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ИНН</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Тип</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Статус</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Дата</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Действия</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {companies?.items && companies.items.map((company: Company) => (
+                    <tr key={company.id} className="table-row">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{company.name}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{company.inn}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        {company.activity_type === 'declarant' ? 'Декларант' : 'Сертификатор'}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className={`badge ${company.is_active ? 'badge-success' : 'badge-warning'}`}>
+                          {company.is_active ? 'Активна' : 'Неактивна'}
+                        </span>
+                        {company.is_blocked && (
+                          <span className="badge badge-danger ml-1">Заблокирована</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        {format(new Date(company.created_at), 'dd MMM yyyy', { locale: ru })}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-right">
+                        <div className="flex space-x-1">
+                          {!company.is_active && (
+                            <button
+                              onClick={() => activateCompanyMutation.mutate(company.id)}
+                              className="p-1 text-green-600 hover:bg-green-50 rounded"
+                              title="Активировать"
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                            </button>
+                          )}
+                          {!company.is_blocked && company.is_active && (
+                            <button
+                              onClick={() => blockCompanyMutation.mutate(company.id)}
+                              className="p-1 text-red-600 hover:bg-red-50 rounded"
+                              title="Заблокировать"
+                            >
+                              <XCircle className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -371,7 +383,7 @@ export default function AdminPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {pendingRequests?.map((request) => (
+                {pendingRequests?.data && pendingRequests.data.map((request: Request) => (
                   <tr key={request.id} className="table-row">
                     <td className="px-4 py-3">
                       <p className="text-sm font-medium text-gray-900">{request.title}</p>
@@ -418,10 +430,10 @@ export default function AdminPage() {
       {activeTab === 'codes' && (
         <div className="card">
           <div className="card-header flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-gray-900">Коды администратора</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Коды доступа</h2>
             <button
               onClick={() => generateCodeMutation.mutate()}
-              disabled={generateCodeMutation.isLoading}
+              disabled={generateCodeMutation.isPending}
               className="btn-primary"
             >
               <Shield className="h-4 w-4 mr-2" />
@@ -441,7 +453,7 @@ export default function AdminPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {adminCodes?.map((code) => (
+                  {adminCodes?.data && adminCodes.data.map((code: AdminCode) => (
                     <tr key={code.id} className="table-row">
                       <td className="px-4 py-3 whitespace-nowrap">
                         <code className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { clientsApi } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
@@ -24,11 +24,12 @@ export default function ClientDetailPage() {
   const queryClient = useQueryClient();
   const { user, companyMember } = useAuthStore();
 
-  const { data: client, isLoading } = useQuery({
+  const { data: clientResponse, isPending } = useQuery({
     queryKey: ['client', id],
     queryFn: () => clientsApi.getById(parseInt(id!)),
     enabled: !!id,
   });
+  const client = clientResponse?.data;
 
   const deleteMutation = useMutation({
     mutationFn: () => clientsApi.delete(parseInt(id!)),
@@ -41,7 +42,7 @@ export default function ClientDetailPage() {
 
   const canEdit = companyMember?.role === 'director' || client?.created_by === user?.id;
 
-  if (isLoading) {
+  if (isPending) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
@@ -84,7 +85,7 @@ export default function ClientDetailPage() {
             </Link>
             <button
               onClick={() => deleteMutation.mutate()}
-              disabled={deleteMutation.isLoading}
+              disabled={deleteMutation.isPending}
               className="btn-danger"
             >
               <Trash2 className="h-4 w-4 mr-2" />

@@ -19,6 +19,7 @@ import {
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import type { Task, PaginatedResponse } from '@/types';
+import toast from 'react-hot-toast';
 
 export default function TasksPage() {
   const { companyMember } = useAuthStore();
@@ -29,7 +30,7 @@ export default function TasksPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
 
-  const { data, isLoading, refetch } = useQuery<PaginatedResponse<Task>>({
+  const { data, isPending, refetch } = useQuery<PaginatedResponse<Task>>({
     queryKey: ['tasks', page, search, statusFilter, companyMember?.company_id],
     queryFn: () => tasksApi.getAll({
       page,
@@ -37,7 +38,7 @@ export default function TasksPage() {
       search: search || undefined,
       status: statusFilter || undefined,
       company_id: companyMember?.company_id,
-    }),
+    }).then(response => response.data),
   });
 
   const updateFilters = (updates: Record<string, string>) => {
@@ -160,7 +161,7 @@ export default function TasksPage() {
 
       {/* Table */}
       <div className="card">
-        {isLoading ? (
+        {isPending ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
           </div>

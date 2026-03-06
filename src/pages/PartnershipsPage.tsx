@@ -7,13 +7,11 @@ import {
   Plus,
   Search,
   Filter,
-  Handshake,
+  Building2,
   MoreVertical,
-  Eye,
   Check,
   X,
   Calendar,
-  Building2,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -31,7 +29,7 @@ export default function PartnershipsPage() {
 
   const queryClient = useQueryClient();
 
-  const { data, isLoading, refetch } = useQuery<PaginatedResponse<Partnership>>({
+  const { data, isPending, refetch } = useQuery<PaginatedResponse<Partnership>>({
     queryKey: ['partnerships', page, search, statusFilter, companyMember?.company_id],
     queryFn: () => partnershipsApi.getAll({
       page,
@@ -39,7 +37,7 @@ export default function PartnershipsPage() {
       search: search || undefined,
       status: statusFilter || undefined,
       company_id: companyMember?.company_id,
-    }),
+    }).then(response => response.data),
   });
 
   const updateFilters = (updates: Record<string, string>) => {
@@ -159,13 +157,13 @@ export default function PartnershipsPage() {
 
       {/* Table */}
       <div className="card">
-        {isLoading ? (
+        {isPending ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
           </div>
         ) : data?.items.length === 0 ? (
           <div className="text-center py-12">
-            <Handshake className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+            <Building2 className="h-12 w-12 mx-auto mb-4 text-gray-300" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Нет партнерств</h3>
             <p className="text-gray-500 mb-4">
               {search || statusFilter ? 'Попробуйте изменить фильтры' : 'Создайте первое партнерство'}
@@ -240,7 +238,7 @@ export default function PartnershipsPage() {
                                   respondMutation.mutate({ id: partnership.id, status: 'accepted' });
                                   setMenuOpenId(null);
                                 }}
-                                disabled={partnership.status !== 'pending' || respondMutation.isLoading}
+                                disabled={partnership.status !== 'pending' || respondMutation.isPending}
                                 className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                               >
                                 <Check className="h-4 w-4 mr-2" />
@@ -251,7 +249,7 @@ export default function PartnershipsPage() {
                                   respondMutation.mutate({ id: partnership.id, status: 'rejected' });
                                   setMenuOpenId(null);
                                 }}
-                                disabled={partnership.status !== 'pending' || respondMutation.isLoading}
+                                disabled={partnership.status !== 'pending' || respondMutation.isPending}
                                 className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                               >
                                 <X className="h-4 w-4 mr-2" />

@@ -35,7 +35,7 @@ export default function ClientsPage() {
       size: 20,
       search: search || undefined,
       company_id: companyMember?.company_id,
-    }),
+    }).then(response => response.data),
   });
 
   const updateFilters = (updates: Record<string, string>) => {

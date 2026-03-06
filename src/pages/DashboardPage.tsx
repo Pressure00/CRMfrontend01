@@ -15,14 +15,16 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import type { DashboardStats } from '@/types';
 
 export default function DashboardPage() {
   const { user, companyMember } = useAuthStore();
 
-  const { data: stats, isLoading } = useQuery({
+  const { data: statsResponse, isPending } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: dashboardApi.getStats,
   });
+  const stats = statsResponse?.data as DashboardStats | undefined;
 
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, string> = {
@@ -49,7 +51,7 @@ export default function DashboardPage() {
     return priorityMap[priority] || 'badge-gray';
   };
 
-  if (isLoading) {
+  if (isPending) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
@@ -176,8 +178,7 @@ export default function DashboardPage() {
                   ? 'Полный доступ ко всем функциям' 
                   : companyMember?.role === 'senior'
                   ? 'Расширенные права доступа'
-                  : 'Базовые права доступа'
-                }
+                  : 'Базовые права доступа'}
               </p>
             </div>
           </div>
@@ -216,7 +217,7 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {stats.recent_declarations.map((declaration) => (
+                  {stats.recent_declarations.map((declaration: any) => (
                     <tr key={declaration.id} className="table-row">
                       <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                         {declaration.declaration_number}
@@ -272,7 +273,7 @@ export default function DashboardPage() {
         <div className="card-body">
           {stats?.upcoming_tasks && stats.upcoming_tasks.length > 0 ? (
             <div className="space-y-4">
-              {stats.upcoming_tasks.slice(0, 5).map((task) => (
+              {stats.upcoming_tasks.slice(0, 5).map((task: any) => (
                 <div key={task.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                   <div className="flex-1">
                     <h3 className="font-medium text-gray-900">{task.title}</h3>
@@ -313,7 +314,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Expiring Certificates */}
-      {stats?.expiring_certificates && stats.expiring_certificates.length > 0 && (
+      {stats?.expiring_certificates_list && stats.expiring_certificates_list.length > 0 && (
         <div className="card border-orange-200">
           <div className="card-header bg-orange-50">
             <h2 className="text-lg font-semibold text-orange-800 flex items-center">
@@ -323,7 +324,7 @@ export default function DashboardPage() {
           </div>
           <div className="card-body">
             <div className="space-y-3">
-              {stats.expiring_certificates.slice(0, 3).map((certificate) => (
+              {stats.expiring_certificates_list.slice(0, 3).map((certificate: any) => (
                 <div key={certificate.id} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200">
                   <div>
                     <p className="font-medium text-gray-900">{certificate.certificate_number}</p>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { certificatesApi } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
@@ -31,11 +31,12 @@ export default function CertificateDetailPage() {
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const { data: certificate, isLoading } = useQuery({
+  const { data: certificateResponse, isPending } = useQuery({
     queryKey: ['certificate', id],
     queryFn: () => certificatesApi.getById(parseInt(id!)),
     enabled: !!id,
   });
+  const certificate = certificateResponse?.data;
 
   const changeStatusMutation = useMutation({
     mutationFn: (status: string) => certificatesApi.changeStatus(parseInt(id!), status as any),
@@ -91,7 +92,7 @@ export default function CertificateDetailPage() {
 
   const canEdit = companyMember?.role === 'director' || certificate?.created_by === user?.id;
 
-  if (isLoading) {
+  if (isPending) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
@@ -228,50 +229,54 @@ export default function CertificateDetailPage() {
             <div className="card-body">
               {showActionForm && (
                 <form onSubmit={handleAddAction} className="mb-6 p-4 border border-gray-200 rounded-lg">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-4">
                     <div>
-                      <label className="label">Тип действия *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Тип действия
+                      </label>
                       <input
                         type="text"
                         value={actionForm.action_type}
                         onChange={(e) => setActionForm({ ...actionForm, action_type: e.target.value })}
                         className="input"
-                        placeholder="Например: Проверка, Одобрение и т.д."
+                        placeholder="Например: Проверка, Обновление, etc."
                       />
                     </div>
-                  </div>
-                  <div className="mt-4">
-                    <label className="label">Комментарий</label>
-                    <textarea
-                      value={actionForm.notes}
-                      onChange={(e) => setActionForm({ ...actionForm, notes: e.target.value })}
-                      className="input"
-                      rows={3}
-                      placeholder="Дополнительные комментарии..."
-                    />
-                  </div>
-                  <div className="flex justify-end space-x-2 mt-4">
-                    <button
-                      type="button"
-                      onClick={() => setShowActionForm(false)}
-                      className="btn-outline"
-                    >
-                      Отмена
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={addActionMutation.isLoading}
-                      className="btn-primary"
-                    >
-                      {addActionMutation.isLoading ? 'Добавление...' : 'Добавить'}
-                    </button>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Примечания
+                      </label>
+                      <textarea
+                        value={actionForm.notes}
+                        onChange={(e) => setActionForm({ ...actionForm, notes: e.target.value })}
+                        className="input"
+                        rows={3}
+                        placeholder="Дополнительная информация..."
+                      />
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        type="submit"
+                        disabled={addActionMutation.isPending}
+                        className="btn-primary"
+                      >
+                        {addActionMutation.isPending ? 'Добавление...' : 'Добавить'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowActionForm(false)}
+                        className="btn-outline"
+                      >
+                        Отмена
+                      </button>
+                    </div>
                   </div>
                 </form>
               )}
 
               {certificate.actions && certificate.actions.length > 0 ? (
                 <div className="space-y-3">
-                  {certificate.actions.map((action) => (
+                  {certificate.actions.map((action: any) => (
                     <div key={action.id} className="flex items-start justify-between p-3 border border-gray-200 rounded-lg">
                       <div>
                         <p className="font-medium text-gray-900">{action.action_type}</p>
@@ -320,17 +325,17 @@ export default function CertificateDetailPage() {
                   <span className="text-sm text-blue-900">{selectedFile.name}</span>
                   <button
                     onClick={handleFileUpload}
-                    disabled={uploadAttachmentMutation.isLoading}
+                    disabled={uploadAttachmentMutation.isPending}
                     className="btn-primary text-xs"
                   >
-                    {uploadAttachmentMutation.isLoading ? 'Загрузка...' : 'Загрузить'}
+                    {uploadAttachmentMutation.isPending ? 'Загрузка...' : 'Загрузить'}
                   </button>
                 </div>
               )}
 
               {certificate.attachments && certificate.attachments.length > 0 ? (
                 <div className="space-y-2">
-                  {certificate.attachments.map((attachment) => (
+                  {certificate.attachments.map((attachment: any) => (
                     <div key={attachment.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                       <div className="flex items-center space-x-3">
                         <FileText className="h-5 w-5 text-gray-400" />
@@ -384,7 +389,7 @@ export default function CertificateDetailPage() {
               {certificate.status === 'draft' && (
                 <button
                   onClick={() => changeStatusMutation.mutate('pending')}
-                  disabled={changeStatusMutation.isLoading}
+                  disabled={changeStatusMutation.isPending}
                   className="w-full btn-outline"
                 >
                   Отправить на рассмотрение
@@ -394,7 +399,7 @@ export default function CertificateDetailPage() {
                 <>
                   <button
                     onClick={() => changeStatusMutation.mutate('approved')}
-                    disabled={changeStatusMutation.isLoading}
+                    disabled={changeStatusMutation.isPending}
                     className="w-full btn-primary"
                   >
                     <Check className="h-4 w-4 mr-2" />
@@ -402,7 +407,7 @@ export default function CertificateDetailPage() {
                   </button>
                   <button
                     onClick={() => changeStatusMutation.mutate('rejected')}
-                    disabled={changeStatusMutation.isLoading}
+                    disabled={changeStatusMutation.isPending}
                     className="w-full btn-danger"
                   >
                     <X className="h-4 w-4 mr-2" />
@@ -413,7 +418,7 @@ export default function CertificateDetailPage() {
               {certificate.status === 'approved' && (
                 <button
                   onClick={() => changeStatusMutation.mutate('expired')}
-                  disabled={changeStatusMutation.isLoading}
+                  disabled={changeStatusMutation.isPending}
                   className="w-full btn-danger"
                 >
                   Пометить как истекший

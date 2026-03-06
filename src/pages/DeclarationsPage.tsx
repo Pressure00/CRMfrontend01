@@ -18,6 +18,7 @@ import {
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import type { Declaration, PaginatedResponse } from '@/types';
+import toast from 'react-hot-toast';
 
 export default function DeclarationsPage() {
   const { companyMember } = useAuthStore();
@@ -28,7 +29,7 @@ export default function DeclarationsPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
 
-  const { data, isLoading, refetch } = useQuery<PaginatedResponse<Declaration>>({
+  const { data, isPending, refetch } = useQuery<PaginatedResponse<Declaration>>({
     queryKey: ['declarations', page, search, statusFilter, companyMember?.company_id],
     queryFn: () => declarationsApi.getAll({
       page,
@@ -36,7 +37,7 @@ export default function DeclarationsPage() {
       search: search || undefined,
       status: statusFilter || undefined,
       company_id: companyMember?.company_id,
-    }),
+    }).then(response => response.data),
   });
 
   const updateFilters = (updates: Record<string, string>) => {
@@ -156,7 +157,7 @@ export default function DeclarationsPage() {
 
       {/* Table */}
       <div className="card">
-        {isLoading ? (
+        {isPending ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
           </div>

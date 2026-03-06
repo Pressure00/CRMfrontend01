@@ -45,6 +45,8 @@ export default function CompanySetupPage() {
         is_active: true,
         user_id: userResponse.data.id,
         id: 0,
+        is_blocked: false,
+        joined_at: new Date().toISOString(),
       });
 
       navigate('/dashboard');
@@ -101,6 +103,8 @@ export default function CompanySetupPage() {
         is_active: false, // Pending approval
         user_id: userResponse.data.id,
         id: 0,
+        is_blocked: false,
+        joined_at: new Date().toISOString(),
       });
 
       navigate('/dashboard');
@@ -123,8 +127,7 @@ export default function CompanySetupPage() {
             <p className="mt-2 text-sm text-gray-600">
               {user?.activity_type === 'declarant' 
                 ? 'Создайте компанию-декларанта или присоединитесь к существующей'
-                : 'Создайте компанию-сертификатора или присоединитесь к существующей'
-              }
+                : 'Создайте компанию-сертификатора или присоединитесь к существующей'}
             </p>
           </div>
 

@@ -40,7 +40,7 @@ export default function DocumentsPage() {
     parent_folder_id: null as number | null,
   });
 
-  const { data: documents, isLoading: documentsLoading, refetch: refetchDocuments } = useQuery<PaginatedResponse<Document>>({
+  const { data: documentsResponse, isPending: documentsLoading, refetch: refetchDocuments } = useQuery<PaginatedResponse<Document>>({
     queryKey: ['documents', page, search, selectedFolder, companyMember?.company_id],
     queryFn: () => documentsApi.getAll({
       page,
@@ -48,15 +48,17 @@ export default function DocumentsPage() {
       search: search || undefined,
       folder_id: selectedFolder || undefined,
       company_id: companyMember?.company_id,
-    }),
+    }).then(response => response.data),
     enabled: !!companyMember?.company_id,
   });
+  const documents = documentsResponse;
 
-  const { data: folders } = useQuery<Folder[]>({
+  const { data: foldersResponse } = useQuery<Folder[]>({
     queryKey: ['folders', companyMember?.company_id],
-    queryFn: () => foldersApi.getAll(companyMember!.company_id!),
+    queryFn: () => foldersApi.getAll(companyMember!.company_id!).then(response => response.data),
     enabled: !!companyMember?.company_id,
   });
+  const folders = foldersResponse;
 
   const updateFilters = (updates: Record<string, string>) => {
     const newParams = new URLSearchParams(searchParams);
@@ -115,7 +117,7 @@ export default function DocumentsPage() {
       toast.success('Папка создана');
       setShowFolderModal(false);
       setFolderForm({ name: '', description: '', parent_folder_id: null });
-      // Invalidate folders query
+      // Invalidate folders query would be needed here
     } catch (error: any) {
       toast.error(error.response?.data?.detail || 'Ошибка создания папки');
     }
@@ -234,16 +236,16 @@ export default function DocumentsPage() {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3 flex-1 min-w-0">
-                    <span className="text-2xl">{getFileIcon(document.mime_type)}</span>
+                    <div className="text-2xl">{getFileIcon(document.mime_type)}</div>
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-medium text-gray-900 truncate">
+                      <Link
+                        to={`/documents/${document.id}`}
+                        className="text-sm font-medium text-primary-600 hover:text-primary-900 truncate block"
+                      >
                         {document.title}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        {formatFileSize(document.file_size)}
-                      </p>
+                      </Link>
                       {document.description && (
-                        <p className="text-xs text-gray-400 mt-1 line-clamp-2">
+                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">
                           {document.description}
                         </p>
                       )}

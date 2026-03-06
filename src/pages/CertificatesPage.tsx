@@ -17,6 +17,7 @@ import {
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import type { Certificate, PaginatedResponse } from '@/types';
+import toast from 'react-hot-toast';
 
 export default function CertificatesPage() {
   const { companyMember } = useAuthStore();
@@ -35,7 +36,7 @@ export default function CertificatesPage() {
       search: search || undefined,
       status: statusFilter || undefined,
       company_id: companyMember?.company_id,
-    }),
+    }).then(response => response.data),
   });
 
   const updateFilters = (updates: Record<string, string>) => {
