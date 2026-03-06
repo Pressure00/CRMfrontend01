@@ -10,6 +10,7 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  base: './', // Добавляем относительные пути для корректной работы на Vercel
   server: {
     port: 5173,
     proxy: {
