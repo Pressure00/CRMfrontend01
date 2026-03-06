@@ -261,7 +261,6 @@ export default function PartnershipsPage() {
                                 onClick={() => handleDelete(partnership.id)}
                                 className="flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50"
                               >
-                                <Trash2 className="h-4 w-4 mr-2" />
                                 Удалить
                               </button>
                             </div>

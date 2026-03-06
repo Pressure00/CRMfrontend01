@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 import {
@@ -21,6 +21,8 @@ import toast from 'react-hot-toast';
 export default function AdminPage() {
   const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState('overview');
+
+  const queryClient = useQueryClient();
 
   const { data: stats } = useQuery({
     queryKey: ['admin-stats'],
@@ -95,8 +97,6 @@ export default function AdminPage() {
     { id: 'requests', name: 'Запросы', icon: FileText },
     { id: 'codes', name: 'Коды доступа', icon: Shield },
   ];
-
-  const queryClient = useQueryClient();
 
   return (
     <div className="space-y-6">

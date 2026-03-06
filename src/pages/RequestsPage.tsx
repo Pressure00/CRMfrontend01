@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { requestsApi } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 import {
@@ -28,6 +28,8 @@ export default function RequestsPage() {
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || '');
   const [showFilters, setShowFilters] = useState(false);
   const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
+
+  const queryClient = useQueryClient();
 
   const { data, isLoading, refetch } = useQuery<PaginatedResponse<Request>>({
     queryKey: ['requests', page, search, statusFilter, companyMember?.company_id],
@@ -299,7 +301,6 @@ export default function RequestsPage() {
                                 onClick={() => handleDelete(request.id)}
                                 className="flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50"
                               >
-                                <Trash2 className="h-4 w-4 mr-2" />
                                 Удалить
                               </button>
                             </div>
